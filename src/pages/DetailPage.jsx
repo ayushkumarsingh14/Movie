@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import useFetchDetails from '../hooks/useFetchDetails';
 import { useSelector } from 'react-redux';
@@ -6,6 +6,7 @@ import moment from 'moment';
 import Divider from '../components/Divider';
 import HorizontalScroll from '../components/HorizontalScroll'
 import useFetch from '../hooks/useFetch';
+import VideoPlay from '../components/VideoPlay';
 
 function DetailPage() {
 
@@ -14,11 +15,18 @@ function DetailPage() {
   const { data : creditData} = useFetchDetails(`${params?.explore}/${params?.id}/credits`)
   const { data : similarData } = useFetch(`/${params?.explore}/${params?.id}/similar`)
   const { data : recommendationData } = useFetch(`/${params?.explore}/${params?.id}/recommendations`)
+  const [playVideo, setPlayVideo] = useState(false);
+  const [playVideoId, setPlayVideoId] = useState("")
   
   const imageURL = useSelector(state => state.movieData.imageURL)
 
   const duration = (data?.runtime/60)?.toFixed(1)?.split(".")
   const writer = creditData?.crew[1]?.name
+
+  const handlePlayVideo = (data) => {
+    setPlayVideoId(data.id)
+    setPlayVideo(true)
+  }
 
   return (
     <div>
@@ -36,6 +44,7 @@ function DetailPage() {
             src={imageURL+data?.poster_path} alt="" 
             className='h-80 w-60 object-cover rounded'
           />
+          <button onClick={() => handlePlayVideo(data)} className='w-full mt-3 py-2 px-4 text-center bg-white rounded font-bold text-black text-lg hover:bg-gradient-to-l from-red-500 to-orange-500 hover:scale-105 transition-all'>Play Now</button>
         </div>
         <div>
           <h2 className='text-2xl lg:text-4xl text-white font-bold'>{data?.title || data?.name}</h2>
@@ -60,6 +69,7 @@ function DetailPage() {
               <span>|</span>
               <p>Released Date : {moment(data?.release_date).format("MMMM Do YYYY")}</p>
               <span>|</span>
+              <p>Revenue : {Number(data?.revenue)}</p>
               
             </div>
             <Divider/>
@@ -93,13 +103,16 @@ function DetailPage() {
           
         </div>
       </div>
-
-      <div>
             <div>
              <HorizontalScroll data={similarData} heading={"Similar "+params?.explore} media_type={params?.explore}/>                         
              <HorizontalScroll data={recommendationData} heading={"Recommendation "+params?.explore} media_type={params?.explore}/>                         
             </div>
-      </div>
+          {
+            playVideo && (
+              <VideoPlay data={playVideoId} close={()=>setPlayVideo(false)} media_type={params?.explore}/>
+            )
+          }
+    
               
     </div>
   )
